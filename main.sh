@@ -2,6 +2,7 @@
 # --------------------------------------------------------------------------------------
 META_FILE=~/.rr/counter.dat
 RR_DIR=~/.rr
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # --------------------------------------------------------------------------------------
 function getLastCounter() {
   if [ ! -f "$META_FILE" ]; then
@@ -20,26 +21,27 @@ function getNextCounter() {
 }
 # --------------------------------------------------------------------------------------
 function replace() {
-  getNextCounter
-  COUNTER=$?
+
+  SEARCH_PATTERN=$2
+  REPLACEMENT_WORD=$3
+  DIRECTORY=$4
 
   if [ $# -lt 4 ]; then
       echo "Usage: rr replace <pattern> <replacement> <folder> [options]"
       exit -1
   fi
 
-  SEARCH_PATTERN=$2
-  REPLACEMENT_WORD=$3
-  DIRECTORY=$4
-
   if ! [[ -d $DIRECTORY ]]; then
       echo "Invalid directory: '$DIRECTORY'"
       exit -1
   fi
 
+  getNextCounter
+  COUNTER=$?
+
   FILES=`find $DIRECTORY | grep "[ch]pp"`
   for f in $FILES; do
-    ./a.out $SEARCH_PATTERN $REPLACEMENT_WORD $f | git diff --no-index $f - > ~/.rr/rr_$COUNTER.patch
+    $DIR/a.out $SEARCH_PATTERN $REPLACEMENT_WORD $f | git diff --no-index $f - >> ~/.rr/rr_$COUNTER.patch
   done
 
   printf "\"$SEARCH_PATTERN\" -> \"$REPLACEMENT_WORD\" in \"$DIRECTORY\"\n" >> $META_FILE
