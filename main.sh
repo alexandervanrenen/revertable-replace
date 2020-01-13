@@ -1,8 +1,5 @@
 #!/bin/sh
 # --------------------------------------------------------------------------------------
-# TODO:
-# - allow more than one directory to be specified in replace
-# --------------------------------------------------------------------------------------
 META_FILE=~/.rr/counter.dat
 RR_DIR=~/.rr
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -29,6 +26,7 @@ function replace() {
   REPLACEMENT_WORD="$2"
   DIRECTORY="$3"
 
+
   if [ $# -lt 3 ]; then
       echo "Usage: rr replace <pattern> <replacement> <folder> [options]"
       exit -1
@@ -42,7 +40,7 @@ function replace() {
   getNextCounter
   COUNTER=$?
 
-  FILES=`find $DIRECTORY | grep "[ch]pp$"`
+  FILES=`find $DIRECTORY | grep "\.[ch]\(pp\)\?$"`
   for f in $FILES; do
     $DIR/patch_maker "$SEARCH_PATTERN" "$REPLACEMENT_WORD" $f | git diff --no-index $f - >> ~/.rr/rr_$COUNTER.patch
     $DIR/patch_maker "$SEARCH_PATTERN" "$REPLACEMENT_WORD" $f | git diff --no-index --color=always $f - >> ~/.rr/rr_color_$COUNTER.patch
@@ -152,18 +150,26 @@ function cludy() {
   printf "cludy in \"$DIRECTORY\"\n" >> $META_FILE
 }
 # --------------------------------------------------------------------------------------
+function printHelpAndExit() {
+  echo "Options are: list, replace, apply, undo, clean, show"
+  echo "rr replace <pattern> <replacement> <folder> [options]"
+  echo "rr show [patch_id]"
+  echo "rr undo [patch_id]"
+  echo "rr apply [patch_id]"
+  exit -1
+}
+# --------------------------------------------------------------------------------------
 # program entry -> main
 
 mkdir -p ~/.rr
 
 if [ $# -lt 1 ]; then
   echo "Need at least one argument."
-  echo "Options are: list, replace, apply, undo, clean, show"
-  exit -1
+  printHelpAndExit
 fi
 
 if [ "$1" = "replace" ]; then
-  replace "$2" "$3" "$4"
+  replace $@
   exit 0
 fi
 
@@ -199,5 +205,4 @@ if [ "$1" = "cludy" ]; then
 fi
 
 echo "Unkown command: $1"
-echo "Options are: list, replace, apply, undo, clean, show"
-exit -1
+printHelpAndExit
