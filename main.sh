@@ -22,12 +22,12 @@ function getNextCounter() {
 # --------------------------------------------------------------------------------------
 function replace() {
 
-  SEARCH_PATTERN="$1"
-  REPLACEMENT_WORD="$2"
-  DIRECTORY="$3"
+  SEARCH_PATTERN="$2"
+  REPLACEMENT_WORD="$3"
+  DIRECTORY="$4"
 
 
-  if [ $# -lt 3 ]; then
+  if [ $# -lt 4 ]; then
       echo "Usage: rr replace <pattern> <replacement> <folder> [options]"
       exit -1
   fi
@@ -40,7 +40,7 @@ function replace() {
   getNextCounter
   COUNTER=$?
 
-  FILES=`find $DIRECTORY | grep "\.[ch]\(pp\)\?$"`
+  FILES=`ag -l $SEARCH_PATTERN -- $DIRECTORY`
   for f in $FILES; do
     $DIR/patch_maker "$SEARCH_PATTERN" "$REPLACEMENT_WORD" $f | git diff --no-index $f - >> ~/.rr/rr_$COUNTER.patch
     $DIR/patch_maker "$SEARCH_PATTERN" "$REPLACEMENT_WORD" $f | git diff --no-index --color=always $f - >> ~/.rr/rr_color_$COUNTER.patch
